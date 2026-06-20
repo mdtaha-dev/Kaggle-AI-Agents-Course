@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Explorer & Twitter Composer</title>
+    <meta name="description" content="Stay updated with the latest Google Cloud BigQuery Release Notes, filter by update type, search entries, and instantly compose and share updates to Twitter.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Ambient Background Gradients -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation & Filters -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-database database-icon"></i>
+                    <span>BigQuery Hub</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>Quick Actions</h3>
+                <button id="btn-refresh" class="btn btn-primary btn-block">
+                    <i class="fa-solid fa-rotate" id="refresh-icon"></i>
+                    <span>Refresh Feed</span>
+                </button>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Filter by Category</h3>
+                <div class="filter-group" id="filter-categories">
+                    <button class="filter-btn active" data-type="all">
+                        <span class="dot dot-all"></span>
+                        <span class="filter-label">All Updates</span>
+                        <span class="count-badge" id="count-all">0</span>
+                    </button>
+                    <!-- JavaScript will dynamically populate counts -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <p>Designed with <i class="fa-solid fa-heart heart-icon"></i> for BQ Professionals</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-container">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search release notes by keywords, features, functions..." autocomplete="off">
+                    <button id="search-clear-btn" class="search-clear" aria-label="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-value" id="stats-total">0</span>
+                        <span class="stat-label">Total Notes</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Body -->
+            <section class="content-body">
+                <!-- Feed Loading View -->
+                <div id="loading-state" class="loading-state">
+                    <div class="spinner-container">
+                        <div class="double-bounce1"></div>
+                        <div class="double-bounce2"></div>
+                    </div>
+                    <p>Fetching latest release notes from Google Cloud...</p>
+                </div>
+
+                <!-- Feed Error View -->
+                <div id="error-state" class="error-state hidden">
+                    <i class="fa-solid fa-triangle-exclamation error-icon"></i>
+                    <h2>Oops! Connection Error</h2>
+                    <p id="error-message">We couldn't connect to the Google BigQuery feed service.</p>
+                    <button id="btn-retry" class="btn btn-secondary">
+                        <i class="fa-solid fa-arrows-rotate"></i> Try Again
+                    </button>
+                </div>
+
+                <!-- Feed Empty View -->
+                <div id="empty-state" class="empty-state hidden">
+                    <i class="fa-solid fa-magnifying-glass empty-icon"></i>
+                    <h2>No Updates Found</h2>
+                    <p>Try modifying your search or changing the active filters.</p>
+                </div>
+
+                <!-- Notes Feed Grid -->
+                <div id="feed-container" class="feed-grid hidden">
+                    <!-- Release note cards will be injected here by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Twitter Composer Modal / Overlay -->
+    <div id="tweet-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-brands fa-twitter twitter-icon"></i> Draft a Tweet</h3>
+                <button class="btn-close" id="btn-close-modal" aria-label="Close modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="selected-note-preview">
+                    <div class="preview-meta">
+                        <span class="badge" id="preview-badge">Feature</span>
+                        <span id="preview-date">June 17, 2026</span>
+                    </div>
+                    <p id="preview-text">Note snippet...</p>
+                </div>
+                
+                <div class="composer-container">
+                    <label for="tweet-textarea">Tweet Draft</label>
+                    <textarea id="tweet-textarea" rows="6" maxlength="280" placeholder="What's happening?"></textarea>
+                    
+                    <div class="composer-meta">
+                        <div class="character-counter">
+                            <span id="char-count">0</span>/280
+                        </div>
+                        <div class="progress-ring-container">
+                            <svg class="progress-ring" width="24" height="24">
+                                <circle class="progress-ring__circle-bg" stroke="#333" stroke-width="2" fill="transparent" r="10" cx="12" cy="12"/>
+                                <circle class="progress-ring__circle" stroke="#1d9bf0" stroke-width="2.5" fill="transparent" r="10" cx="12" cy="12"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tweet-templates">
+                    <span>Templates:</span>
+                    <div class="template-chips">
+                        <button class="template-chip" data-template-id="brief">💡 Highlights</button>
+                        <button class="template-chip" data-template-id="detailed">📝 Detail-oriented</button>
+                        <button class="template-chip" data-template-id="ga" id="chip-ga">🚀 Launch Announcement</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-cancel-tweet" class="btn btn-secondary">Cancel</button>
+                <button id="btn-send-tweet" class="btn btn-twitter">
+                    <i class="fa-brands fa-twitter"></i> Post to Twitter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Bundle -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
